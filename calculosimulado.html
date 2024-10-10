@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acqua Energy</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@100..900&display=swap" rel="stylesheet">
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js'></script>
+
+</head>
+
+<body>
+    <header>
+        <ul class="headerUl">
+            <li><a class="headerLink" href="#">Sobre nós</a></li>
+            <li><img class="headerIcon" src="img/logoAcquaEnergy.png" alt="Logo da Aqua Energy"></li>
+        </ul>
+    </header>
+
+    <main>
+        <div class="mainDivPrincipal">
+            <h1>Calcule o consumo de energia:</h1>
+            <div class="selecionePot">
+
+                <!-- Custom Dropdown -->
+                <p class="labelCalculoConsumo">Selecione a potência do chuveiro:</p>
+                <div class="dropdown">
+                    <div class="select">
+                        <span>5500W</span>
+                        <div class="caret"></div>
+                    </div>
+                    <ul class="menu">
+                        <li class="active">5500W</li>
+                        <li>7500W</li>
+                        <li>8500W</li>
+                        <li>9500W</li>
+                    </ul>
+                </div>
+
+            </div>
+            <div id="sample"></div>
+            <div class="divConsumo">
+
+                <div id="resultado">
+                    <div id="caixaResultado" style="flex-wrap: wrap;">
+                        <p>Consumo: <span class="consumo">0 kWh</span></p>
+                        <p>Custo: <span class="custo">R$ 0</span></p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <script src="js/script.js"></script>
+
+    <script>
+        var socket = io();
+
+        socket.on('data', function (data) {
+            console.log(data);
+            // document.getElementById('sample').innerHTML = data;
+
+            // Assuming data contains the time in seconds
+            var tempoSegundos = data;
+            var potencia = document.querySelector('.select span').innerText.replace('W', ''); // Remove 'W' to get the numeric value
+
+            var tempoHoras = Math.abs(tempoSegundos) / 3600; // Convert seconds to hours
+            var consumo = (potencia * tempoHoras) / 1000; // Consumption in kWh
+
+            // Update the consumption in kWh
+            document.querySelector('.consumo').innerText = consumo.toFixed(2) + ' kWh';
+
+            var precoKWh = 0.92; // Price per kWh in reais
+            var custo = consumo * precoKWh; // Cost calculation
+
+            // Update the cost in reais
+            document.querySelector('.custo').innerText = 'R$ ' + custo.toFixed(2);
+
+            // Make the result section visible
+            document.getElementById('resultado').style.display = 'block';
+            document.getElementById('caixaResultado').style.display = 'flex';
+
+            // Convert the received time in seconds to a more readable format (HH:MM:SS)
+            function formatTime(seconds) {
+                const hrs = Math.floor(seconds / 3600);
+                const mins = Math.floor((seconds % 3600) / 60);
+                const secs = seconds % 60;
+                return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            // Update the time display
+            document.getElementById('sample').innerText = `Tempo de banho: ${formatTime(tempoSegundos)}`;
+        });
+    </script>
+</body>
+
+</html>
