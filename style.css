@@ -260,32 +260,6 @@ header {
     border: 2px solid #404a99;
 }
 
-div#sample {
-    margin-top: 40px;
-    font-size: 24px;
-    font-weight: 100;
-    font-family: "Archivo", sans-serif;
-    font-optical-sizing: auto;
-    display: flex;
-    align-self: flex-start;
-}
-
-@media (max-width: 768px) {
-    div#sample {
-        font-size: 20px;
-        margin-top: 30px;
-    }
-}
-
-@media (max-width: 480px) {
-    div#sample {
-        font-size: 16px;
-        margin-top: 20px;
-        align-self: center;
-        text-align: center;
-    }
-}
-
 @media (max-width: 768px) {
     header {
         max-width: 768px;

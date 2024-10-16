@@ -1,9 +1,7 @@
-const dropdowns = document.querySelectorAll('.dropdown'); // Seleciona todos os dropdowns
-
-// Inicializa as variáveis de seleção
-let tensaoSelecionada = '127V';
-let potenciaSelecionada = '4400W';
-let estacaoSelecionada = 'Verão';
+const dropdowns = document.querySelectorAll('.dropdown');
+const tensaoDiv = document.querySelector('.selecioneTensao');
+const potenciaDiv = document.querySelector('.selecionePotencia');
+const estacaoDiv = document.querySelector('.selecioneEstacao');
 
 // Tabela de potências para cada tensão e estação
 const potencias127V = {
@@ -19,9 +17,16 @@ const potencias220V = {
     '7500W': { 'Verão': 2617, 'Outono': 5150, 'Inverno': 7500 }
 };
 
+let tensaoSelecionada = '127V';
+let potenciaSelecionada = '4400W';
+let estacaoSelecionada = 'Verão';
+
 // Função para calcular o consumo
-function calcularConsumo(tempoSegundos) {
-    // Obtém a potência com base na seleção de tensão e estação
+function calcularConsumo() {
+    var tempoMinutos = document.getElementById('tempo').value;
+    var tempoHoras = Math.abs(tempoMinutos) / 60; // Converter minutos em horas
+
+    // Determina a potência com base na tensão e estação selecionadas
     let potencia;
     if (tensaoSelecionada === '127V') {
         potencia = potencias127V[potenciaSelecionada][estacaoSelecionada];
@@ -29,39 +34,24 @@ function calcularConsumo(tempoSegundos) {
         potencia = potencias220V[potenciaSelecionada][estacaoSelecionada];
     }
 
-    const tempoHoras = Math.abs(tempoSegundos) / 3600; // Converter segundos para horas
-    const consumo = (potencia * tempoHoras) / 1000; // Consumo em kWh
-    const custo = consumo * 0.92; // Custo com taxa definida (0.92 R$/kWh)
+    var consumo = (potencia * tempoHoras) / 1000; // Consumo em kWh
 
-    // Atualiza a interface com os resultados
+    // Atualizar o consumo em kWh
     document.querySelector('.consumo').innerText = consumo.toFixed(2) + ' kWh';
+
+    var precoKWh = 0.92; // Preço por kWh em reais
+    var custo = consumo * precoKWh; // Cálculo do custo
+
+    // Atualizar o custo em reais
     document.querySelector('.custo').innerText = 'R$ ' + custo.toFixed(2);
-    
-    // Torna a seção de resultados visível
+
+    // Tornar a seção de resultados visível
     document.getElementById('resultado').style.display = 'block';
     document.getElementById('caixaResultado').style.display = 'flex';
-
-    // Atualiza o tempo de banho
-    document.getElementById('sample').innerText = `Tempo de banho: ${formatTime(tempoSegundos)}`;
 }
 
-// Função para formatar o tempo
-function formatTime(seconds) {
-    const hrs = Math.floor(seconds / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-}
 
-// Escuta eventos do socket
-var socket = io();
-socket.on('data', function (data) {
-    console.log(data); // Log do dado recebido
-    var tempoSegundos = data; // Supõe que os dados contêm o tempo em segundos
-    calcularConsumo(tempoSegundos); // Chama a função de cálculo
-});
-
-// Adiciona eventos aos dropdowns
+// Lógica para mostrar/ocultar dropdowns com base nas seleções
 dropdowns.forEach(dropdown => {
     const select = dropdown.querySelector('.select');
     const caret = dropdown.querySelector('.caret');
@@ -76,7 +66,7 @@ dropdowns.forEach(dropdown => {
 
     options.forEach(option => {
         option.addEventListener('click', () => {
-            select.querySelector('span').innerText = option.innerText; // Atualiza o texto da opção selecionada
+            select.querySelector('span').innerText = option.innerText;
             select.classList.remove('select-clicked');
             caret.classList.remove('caret-rotate');
             menu.classList.remove('menu-open');
@@ -86,25 +76,22 @@ dropdowns.forEach(dropdown => {
             });
             option.classList.add('active');
 
-            // Atualiza as seleções com base na seleção do dropdown
+            // Se tensão for selecionada, exibe a potência
             if (dropdown.closest('.selecioneTensao')) {
                 tensaoSelecionada = option.innerText;
+                potenciaDiv.style.display = 'flex';
             }
 
+            // Se potência for selecionada, exibe a estação
             if (dropdown.closest('.selecionePotencia')) {
                 potenciaSelecionada = option.innerText;
+                estacaoDiv.style.display = 'flex';
             }
 
+            // Se estação for selecionada, salva a seleção
             if (dropdown.closest('.selecioneEstacao')) {
                 estacaoSelecionada = option.innerText;
             }
         });
     });
-});
-
-// Calcula o consumo ao pressionar Enter
-document.addEventListener('keydown', function (event) {
-    if (event.key === 'Enter') {
-        // Aqui você pode adicionar uma função se necessário
-    }
 });
